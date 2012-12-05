@@ -176,7 +176,14 @@ end
 
 apache_site "gitorious-ssl"
 
-#apache_site "gitorious-ssl"
+# Install sphinx
+
+package "sphinxsearch"
+
+cron "gitorious_thinking_sphinx_reindexing" do
+  user  gitorious_user
+  command "cd #{deploy_path} && #{gem_path}/bundle exec rake thinking_sphinx:index RAILS_ENV=production 2>&1 >/dev/null"
+end
 
 # Prepare DB and sphinx
 
