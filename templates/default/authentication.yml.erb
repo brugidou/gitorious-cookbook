@@ -1,0 +1,46 @@
+production:
+  disable_default: false
+  methods:
+    - adapter: Gitorious::Authentication::LDAPAuthentication
+
+      host: <%= node[:gitorious][:ldap][:host] %>
+      port: <%= node[:gitorious][:ldap][:port] %>
+      base_dn: <%= node[:gitorious][:ldap][:base_dn] %>
+
+      # The base DN when searching for groups (for authorization)
+      # If unspecified, base_dn is used
+      # group_search_dn: OU=groups,dc=gitorious,dc=org
+
+      login_attribute: <%= node[:gitorious][:ldap][:login_attribute] %>
+
+      <% if node[:gitorious][:ldap][:distinguished_name_template] %>
+      distinguished_name_template: "<%= node[:gitorious][:ldap][:distinguished_name_template] %>"
+      <% end %>
+
+      # A class/object that will be called after successful authentication
+      # through LDAP. Will be "constantized", post_authenticate will be called
+      # with an options hash. See LdapAuthenticationTest.
+      #callback_class: SampleCallback
+
+      # Specify a username/password to use for authenticated bind
+      # NOTE: This is required when using LDAP for authorization
+      #bind_user:
+      #  username: boss
+      #  password: sikret
+
+      # When using LDAP authorization: which attribute in a user
+      # record specifies groups a user is member of
+      # This will depend on your schema/LDAP server implementation
+      # but in 9/10 cases, it will be memberof
+      #membership_attribute_name: memberof
+
+      # When using LDAP authorization: which attribute in a group
+      # record specifies users that are member of the group
+      # This will depend on your  LDAP schema, but will usually be 
+      # member or uniquemember
+      #members_attribute_name: member
+
+      # To increase performance, Gitorious supports caching the result
+      # of group lookups. Enter how many minutes these results should
+      # be cached, default is 0 (no caching)
+      #cache_expiry: 60

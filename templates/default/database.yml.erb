@@ -1,0 +1,7 @@
+production:
+  adapter: mysql
+  database: <%= node[:gitorious][:mysql_database] %>
+  username: <%= node[:gitorious][:user] %>
+  password: <%= node[:gitorious][:mysql_password] %>
+  host: localhost
+  encoding: utf8
