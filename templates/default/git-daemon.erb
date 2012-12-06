@@ -14,7 +14,7 @@
 GITORIOUS_HOME="<%= @gitorious_home %>"
 RETVAL=0
 PROG="git-daemon"
-GIT_DAEMON="ruby $GITORIOUS_HOME/script/git-daemon -d"
+GIT_DAEMON="<%= @gem_path %>/bundle exec $GITORIOUS_HOME/script/git-daemon -d"
 LOCK_FILE=/var/lock/git-daemon
 PID_FILE=$GITORIOUS_HOME/log/git-daemon.pid
  

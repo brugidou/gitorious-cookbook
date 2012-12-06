@@ -14,7 +14,7 @@
 GITORIOUS_HOME="<%= @gitorious_home %>"
 RETVAL=0
 PROG="git-poller"
-GIT_POLLER="ruby $GITORIOUS_HOME/script/poller"
+GIT_POLLER="<%= @gem_path %>/bundle exec $GITORIOUS_HOME/script/poller"
 LOCK_FILE=/var/lock/git-poller
 PID_FILE=$GITORIOUS_HOME/tmp/pids/poller0.pid
 export RAILS_ENV=production

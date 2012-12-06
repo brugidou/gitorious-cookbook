@@ -14,9 +14,9 @@
 PATH=$PATH:/var/lib/gems/1.8/bin
 GITORIOUS_HOME="<%= @gitorious_home %>"
 RETVAL=0
-START_CMD="cd $GITORIOUS_HOME && <%= @gem_path %>/rake thinking_sphinx:start RAILS_ENV=production"
-STOP_CMD="cd $GITORIOUS_HOME && <%= @gem_path %>/rake thinking_sphinx:stop RAILS_ENV=production"
-RESTART_CMD="cd $GITORIOUS_HOME && <%= @gem_path %>/rake thinking_sphinx:restart RAILS_ENV=production"
+START_CMD="cd $GITORIOUS_HOME && <%= @gem_path %>/bundle exec rake thinking_sphinx:start RAILS_ENV=production"
+STOP_CMD="cd $GITORIOUS_HOME && <%= @gem_path %>/bundle exec rake thinking_sphinx:stop RAILS_ENV=production"
+RESTART_CMD="cd $GITORIOUS_HOME && <%= @gem_path %>/bundle exec rake thinking_sphinx:restart RAILS_ENV=production"
 LOCK_FILE=/var/lock/git-thinking-sphinx
 PID_FILE=$GITORIOUS_HOME/db/sphinx/log/searchd.pid
  

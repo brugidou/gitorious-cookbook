@@ -7,6 +7,8 @@
 
 include_recipe "rabbitmq"
 
+ENV['HOME'] ||= "/root"
+
 rabbitmq_plugin "rabbitmq_stomp" do
   action :enable
 end
@@ -26,11 +28,6 @@ user gitorious_user do
 end
 
 directory deploy_path do
-  owner gitorious_user
-  recursive true
-end
-
-directory "#{deploy_path}/tmp/pids" do
   owner gitorious_user
   recursive true
 end
@@ -58,12 +55,17 @@ git deploy_path do
   reference node[:gitorious][:git][:ref]
   user gitorious_user
   enable_submodules true
-  action :checkout
+  action :sync
 end
 
-execute "bundle --without development" do
+directory "#{deploy_path}/tmp/pids" do
+  owner gitorious_user
+  recursive true
+end
+
+execute "bundle --deployment --without development test" do
   cwd deploy_path
-  user "root"
+  user gitorious_user
 end
 
 # MySQL
@@ -91,6 +93,44 @@ mysql_database_user gitorious_user do
   action [:create, :grant]
 end
 
+# Service definition
+
+include_recipe "passenger_apache2::mod_rails"
+include_recipe "apache2::mod_ssl"
+
+gitorious_services = %w(git-daemon git-poller git-thinking-sphinx)
+
+gitorious_services.each do |s|
+  template "/etc/init.d/#{s}" do
+    source "#{s}.erb"
+    mode   "0755"
+    variables(
+      :gitorious_home => deploy_path,
+      :gem_path => gem_path
+    )
+  end
+end
+
+service "git-daemon" do
+  action :enable
+  supports :restart => true, :reload => false, :status => false
+  subscribes :restart, resources("template[/etc/init.d/git-daemon]")
+end
+
+service "git-poller" do
+  action :enable
+  pattern "poller"
+  supports :restart => true, :reload => false, :status => false
+  subscribes :restart, resources("template[/etc/init.d/git-poller]")
+end
+
+service "git-thinking-sphinx" do
+  action :enable
+  pattern "searchd"
+  supports :restart => true, :reload => false, :status => false
+  subscribes :restart, resources("template[/etc/init.d/git-thinking-sphinx]")
+end
+
 # Config
 
 require 'openssl'
@@ -109,24 +149,32 @@ template "#{deploy_path}/config/gitorious.yml" do
   source "gitorious.yml.erb"
   mode "0644"
   owner gitorious_user
+  gitorious_services.each {|s| notifies :restart, "service[#{s}]" }
+  notifies :reload, "service[apache2]"
 end
 
 template "#{deploy_path}/config/database.yml" do
   source "database.yml.erb"
   mode "0644"
   owner gitorious_user
+  gitorious_services.each {|s| notifies :restart, "service[#{s}]" }
+  notifies :reload, "service[apache2]"
 end
 
 template "#{deploy_path}/config/broker.yml" do
   source "broker.yml.erb"
   mode "0644"
   owner gitorious_user
+  gitorious_services.each {|s| notifies :restart, "service[#{s}]" }
+  notifies :reload, "service[apache2]"
 end
 
 template "#{deploy_path}/config/authentication.yml" do
   source "authentication.yml.erb"
   mode "0644"
   owner gitorious_user
+  gitorious_services.each {|s| notifies :restart, "service[#{s}]" }
+  notifies :reload, "service[apache2]"
 end
 
 cookbook_file "/etc/logrotate.d/gitorious" do
@@ -135,23 +183,19 @@ cookbook_file "/etc/logrotate.d/gitorious" do
   mode "0644"
 end
 
-# Services init.d
+# Prepare DB and sphinx
 
-%w(git-daemon git-poller git-thinking-sphinx).each do |s|
-  template "/etc/init.d/#{s}" do
-    source "#{s}.erb"
-    mode   "0755"
-    variables(
-      :gitorious_home => deploy_path,
-      :gem_path => gem_path
-    )
-  end
+package "sphinxsearch"
+
+execute "bundle exec rake db:create db:migrate thinking_sphinx:configure" do
+  cwd deploy_path
+  environment(
+    'RAILS_ENV' => 'production'
+  )
+  user gitorious_user
 end
 
 # Apache config
-
-include_recipe "passenger_apache2::mod_rails"
-include_recipe "apache2::mod_ssl"
 
 web_app "gitorious" do
   docroot "#{deploy_path}/public"
@@ -168,6 +212,7 @@ template "/etc/apache2/sites-available/gitorious-ssl" do
   variables(
     :gitorious_path => deploy_path
   )
+  notifies :reload, "service[apache2]"
 end
 
 apache_site "default" do
@@ -176,39 +221,21 @@ end
 
 apache_site "gitorious-ssl"
 
-# Install sphinx
-
-package "sphinxsearch"
+# Start services
 
 cron "gitorious_thinking_sphinx_reindexing" do
   user  gitorious_user
   command "cd #{deploy_path} && #{gem_path}/bundle exec rake thinking_sphinx:index RAILS_ENV=production 2>&1 >/dev/null"
 end
 
-# Prepare DB and sphinx
-
-execute "bundle exec rake db:create db:migrate thinking_sphinx:configure" do
-  cwd deploy_path
-  environment(
-    'RAILS_ENV' => 'production'
-  )
-end
-
-# Services
-
 service "git-daemon" do
-  action [ :enable, :start ]
-  supports :restart => true, :reload => false, :status => false
+  action :start
 end
 
 service "git-poller" do
-  action [ :enable, :start ]
-  pattern "poller"
-  supports :restart => true, :reload => false, :status => false
+  action :enable
 end
 
 service "git-thinking-sphinx" do
-  action [ :enable, :start ]
-  pattern "searchd"
-  supports :restart => true, :reload => false, :status => false
+  action :start
 end
