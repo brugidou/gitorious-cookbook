@@ -13,6 +13,8 @@ default[:gitorious][:custom_username_label] = "Username"
 default[:gitorious][:mysql_database] = "gitorious"
 default[:gitorious][:mysql_password] = "1234"
 
+default[:gitorious][:use_ldap_for_authorization] = true
+
 default[:gitorious][:ldap][:host] = "ldap.gitorious.org"
 default[:gitorious][:ldap][:port] = 389
 default[:gitorious][:ldap][:base_dn] = "DC=gitorious,DC=org" 

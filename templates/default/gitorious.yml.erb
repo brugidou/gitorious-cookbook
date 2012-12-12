@@ -104,4 +104,4 @@ production:
   custom_username_label: "<%= node[:gitorious][:custom_username_label] %>"
 
   # Should LDAP be used for authorization? 
-  # use_ldap_for_authorization: true
+  use_ldap_for_authorization: <%= node[:gitorious][:use_ldap_for_authorization] %>
