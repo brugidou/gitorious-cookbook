@@ -145,42 +145,24 @@ end
 
 node.set_unless[:gitorious][:cookie_secret] = cookie_secret
 
-template "#{deploy_path}/config/gitorious.yml" do
-  source "gitorious.yml.erb"
-  mode "0644"
-  owner gitorious_user
-  gitorious_services.each {|s| notifies :restart, "service[#{s}]" }
-  notifies :reload, "service[apache2]"
+%w(gitorious database broker authentication).each do |config|
+  template "#{deploy_path}/config/#{config}.yml" do
+    source "#{config}.yml.erb"
+    mode "0644"
+    owner gitorious_user
+    gitorious_services.each {|s| notifies :restart, "service[#{s}]" }
+    notifies :reload, "service[apache2]"
+  end
 end
 
-template "#{deploy_path}/config/database.yml" do
-  source "database.yml.erb"
-  mode "0644"
-  owner gitorious_user
-  gitorious_services.each {|s| notifies :restart, "service[#{s}]" }
-  notifies :reload, "service[apache2]"
-end
-
-template "#{deploy_path}/config/broker.yml" do
-  source "broker.yml.erb"
-  mode "0644"
-  owner gitorious_user
-  gitorious_services.each {|s| notifies :restart, "service[#{s}]" }
-  notifies :reload, "service[apache2]"
-end
-
-template "#{deploy_path}/config/authentication.yml" do
-  source "authentication.yml.erb"
-  mode "0644"
-  owner gitorious_user
-  gitorious_services.each {|s| notifies :restart, "service[#{s}]" }
-  notifies :reload, "service[apache2]"
-end
-
-cookbook_file "/etc/logrotate.d/gitorious" do
-  source "gitorious-logrotate"
+template "/etc/logrotate.d/gitorious" do
+  source "gitorious-logrotate.erb"
   owner "root"
   mode "0644"
+  variables(
+    :deploy_path => deploy_path,
+    :gitorious_services => gitorious_services
+  )
 end
 
 # Prepare DB and sphinx
@@ -228,14 +210,8 @@ cron "gitorious_thinking_sphinx_reindexing" do
   command "cd #{deploy_path} && #{gem_path}/bundle exec rake thinking_sphinx:index RAILS_ENV=production 2>&1 >/dev/null"
 end
 
-service "git-daemon" do
-  action :start
-end
-
-service "git-poller" do
-  action :enable
-end
-
-service "git-thinking-sphinx" do
-  action :start
+gitorious_services.each do |s|
+  service s do
+    action :start
+  end
 end

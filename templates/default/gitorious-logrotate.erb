@@ -1,0 +1,11 @@
+<%= @deploy_path %>/log/*log {
+    missingok
+    notifempty
+    sharedscripts
+    postrotate
+      <% @gitorious_services.each do |service| %>
+        /etc/init.d/<%= service %> restart > /dev/null 2>/dev/null || true
+      <% end %>
+        /bin/touch <%= @deploy_path %>/tmp/restart.txt > /dev/null 2>/dev/null || true
+endscript
+}
