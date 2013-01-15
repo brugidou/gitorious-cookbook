@@ -1,4 +1,4 @@
-escription
+Description
 ===========
 
 Installs gitorious (http://gitorious.org/gitorious) on a single server.
