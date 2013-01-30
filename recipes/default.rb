@@ -5,6 +5,35 @@
 # Copyright 2012, Copyright 2012, Criteo
 #
 
+# We use ruby 1.8.x
+%w(ruby ruby-dev rubygems git
+   libxml2-dev libxslt1-dev
+   libmysqlclient-dev).each do |p|
+  # make sure this runs *first*, so we can find the gem_path
+  package p do
+    action :nothing
+  end.run_action(:install)
+end
+
+# deduce gem path
+raise '"gem" not found' unless gem = `which gem`
+gem_path = `gem env gemdir`+'/bin'
+unless File.directory? gem_path
+  gem_path = "/usr/local/bin"
+end
+
+# apt recipe is broken: http://tickets.opscode.com/browse/COOK-2223
+# so using this workaround
+apt_repository "rabbitmq" do
+  uri "http://www.rabbitmq.com/debian/"
+  distribution "testing"
+  components ["main"]
+  key "http://www.rabbitmq.com/rabbitmq-signing-key-public.asc"
+  action :add
+end
+
+execute 'apt-get update'
+
 include_recipe "rabbitmq"
 
 ENV['HOME'] ||= "/root"
@@ -18,7 +47,6 @@ include_recipe "memcached"
 gitorious_user = node[:gitorious][:user]
 deploy_path = node[:gitorious][:deploy_path]
 git_path = node[:gitorious][:git_path]
-gem_path = "/var/lib/gems/1.8/bin"
 
 ENV['PATH'] = "#{gem_path}:#{ENV['PATH']}"
 
@@ -37,13 +65,6 @@ end
     owner gitorious_user
     recursive true
   end
-end
-
-# We use ruby 1.8.x
-%w(ruby ruby-dev rubygems git
-   libxml2-dev libxslt1-dev
-   libmysqlclient-dev).each do |p|
-  package p
 end
 
 gem_package "bundler"
@@ -168,6 +189,11 @@ end
 # Prepare DB and sphinx
 
 package "sphinxsearch"
+
+execute "correct invalid gemspec dates" do
+  command "find . -name '*.gemspec' | xargs sed -i 's/ 00:00:00\.000000000Z//'"
+  cwd deploy_path
+end
 
 execute "bundle exec rake db:create db:migrate thinking_sphinx:configure" do
   cwd deploy_path

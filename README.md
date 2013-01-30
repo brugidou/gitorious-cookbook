@@ -8,8 +8,14 @@ Requirements
 
 Platform
 --------
-Tested on Debian stable (6.0.6), it uses the packaged ruby 1.8.X and there is a 
-small hack to get gems in the PATH from /var/lib/gems/1.8/bin
+Tested on: 
+
+* Debian stable (6.0.6)
+* Ubuntu Precise (12.04)
+
+It uses package Rubygems 1.8.X from apt, plus a small hack to find gem binaries. 
+Depending on the Debian/Ubuntu policy, these are sometimes in 
+`/var/lib/gems/1.8/bin`, other times in `/usr/local/bin`.
 
 Dependencies
 ------------
