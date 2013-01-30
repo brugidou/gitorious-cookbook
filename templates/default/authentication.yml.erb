@@ -18,8 +18,8 @@ production:
       <% end %>
 
       attribute_mapping:
-      <% node[:gitorious][:ldap][:attribute_mapping].each do |key, value| %>
-        <%= key %>: <%= value %>
+      <% node[:gitorious][:ldap][:attribute_mapping].keys.sort.each do |key| %>
+        <%= key %>: <%= node[:gitorious][:ldap][:attribute_mapping][key] %>
       <% end %>
 
       encryption: <%= node[:gitorious][:ldap][:encryption] %>
