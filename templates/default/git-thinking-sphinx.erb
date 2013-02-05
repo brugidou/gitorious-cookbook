@@ -23,15 +23,15 @@ PID_FILE=$GITORIOUS_HOME/db/sphinx/log/searchd.pid
 case "$1" in
   start)
     echo -n "Starting git-thinking-sphinx"
-    /bin/su - git -c "$START_CMD" 1>/dev/null 2>/dev/null && echo "." || echo ": FAILURE (already running?)"
+    /bin/su - <%= @node[:gitorious][:user] %> -c "$START_CMD" 1>/dev/null 2>/dev/null && echo "." || echo ": FAILURE (already running?)"
     ;;
   stop)
     echo -n "Stopping git-thinking-sphinx"
-    /bin/su - git -c "$STOP_CMD" 1>/dev/null 2>/dev/null && echo "." || echo ": FAILURE (maybe not running?)"
+    /bin/su - <%= @node[:gitorious][:user] %> -c "$STOP_CMD" 1>/dev/null 2>/dev/null && echo "." || echo ": FAILURE (maybe not running?)"
     ;;
   restart)
     echo -n "Restarting git-thinking-sphinx"
-    /bin/su - git -c "$RESTART_CMD" 1>/dev/null && echo "."  || echo ": FAILURE"
+    /bin/su - <%= @node[:gitorious][:user] %> -c "$RESTART_CMD" 1>/dev/null && echo "."  || echo ": FAILURE"
     ;;
   *)
     echo $"Usage: $0 {start|stop|restart}"
