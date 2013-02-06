@@ -26,4 +26,5 @@ default[:gitorious][:ldap][:attribute_mapping] = {
 }
 default[:gitorious][:ldap][:encryption] = 'simple_tls'
 
-
+default[:gitorious][:apache][:ssl][:cert_path] = '/etc/ssl/certs/ssl-cert-snakeoil.pem'
+default[:gitorious][:apache][:ssl][:key_path] = '/etc/ssl/private/ssl-cert-snakeoil.key'
