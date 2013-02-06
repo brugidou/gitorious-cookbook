@@ -50,6 +50,8 @@ Attribute | Description | Default
 `ldap:distinguished_name_template` | | `nil` (defaults to `$LOGIN_ATTRIBUTE={},$BASE_DN`)
 `ldap:attribute_mapping` | | `{'displayName' => 'fullname', 'mail' => 'email'}`
 `ldap:encryption`        | | `simple_tls`
+`apache:ssl:cert_path`   | Location of Apache SSL certificate | `/etc/ssl/certs/ssl-cert-snakeoil.pem`
+`apache:ssl:key_path`    | Location of Apache SSL key | `/etc/ssl/private/ssl-cert-snakeoil.key`
 
 Usage
 =====

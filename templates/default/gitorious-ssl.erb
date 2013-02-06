@@ -2,8 +2,8 @@
   <VirtualHost _default_:443>
     DocumentRoot <%= @gitorious_path %>/public
     SSLEngine on
-    SSLCertificateFile    /etc/ssl/certs/ssl-cert-snakeoil.pem  
-    SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
+    SSLCertificateFile    <%= @node[:gitorious][:apache][:ssl][:cert_path] %>
+    SSLCertificateKeyFile <%= @node[:gitorious][:apache][:ssl][:key_path] %>
     BrowserMatch ".*MSIE.*" nokeepalive ssl-unclean-shutdown downgrade-1.0 force-response-1.0
   </VirtualHost>
 </IfModule>
