@@ -35,7 +35,7 @@ start()
   do_check_pid
   if [ $RUNNING != 2 ] ; then
     echo -n "Starting $PROG"
-    /bin/su - git -c "$GIT_DAEMON" 2>/dev/null
+    /bin/su - <%= @node[:gitorious][:user] %> -c "$GIT_DAEMON" 2>/dev/null
     sleep 1
     if [ -f $PID_FILE ] ; then
       echo "."

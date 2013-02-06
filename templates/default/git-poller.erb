@@ -39,7 +39,7 @@ start()
   do_check_pid
   if [ $RUNNING != 2 ] ; then
     echo -n "Starting $PROG"
-    /bin/su - git -c "RAILS_ENV=$RAILS_ENV $GIT_POLLER start" 2>/dev/null
+    /bin/su - <%= @node[:gitorious][:user] %> -c "RAILS_ENV=$RAILS_ENV $GIT_POLLER start" 2>/dev/null
     sleep 4 
     if [ -f $PID_FILE ] ; then
       echo "."
@@ -64,7 +64,7 @@ stop()
   else
     echo -n "Stopping $PROG"
     #killproc -p $PID_FILE
-    /bin/su - git -c "RAILS_ENV=$RAILS_ENV $GIT_POLLER stop" 1>/dev/null 2>/dev/null
+    /bin/su - <%= @node[:gitorious][:user] %> -c "RAILS_ENV=$RAILS_ENV $GIT_POLLER stop" 1>/dev/null 2>/dev/null
     RETVAL=$?
     sleep 1
     # if we are in halt or reboot runlevel kill all running sessions
