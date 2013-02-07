@@ -1,5 +1,6 @@
 production:
   disable_default: false
+<% if node[:gitorious][:use_ldap_for_authorization] %>
   methods:
     - adapter: Gitorious::Authentication::LDAPAuthentication
 
@@ -51,3 +52,4 @@ production:
       # of group lookups. Enter how many minutes these results should
       # be cached, default is 0 (no caching)
       #cache_expiry: 60
+<% end %>

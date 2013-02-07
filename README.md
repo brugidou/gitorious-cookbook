@@ -42,7 +42,7 @@ Attribute | Description | Default
 `custom_username_label` | Used on the login page | `Username`
 `mysql_database`      | Mysql database name | `gitorious`
 `mysql_password`      | Mysql user password | `1234`
-`use_ldap_for_authorization` | | `true`
+`use_ldap_for_authorization` | If this is set to false, all other ldap attributes are ignored | `true`
 `ldap:host`           | | `ldap.gitorious.org`
 `ldap:port`           | | `389`
 `ldap:base_dn`        | | `DC=gitorious,DC=org`
