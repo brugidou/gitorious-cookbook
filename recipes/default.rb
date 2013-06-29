@@ -5,6 +5,14 @@
 # Copyright 2012, Copyright 2012, Criteo
 #
 
+include_recipe "stompserver"
+include_recipe "memcached"
+include_recipe "mysql::ruby"
+include_recipe "mysql::server"
+include_recipe "passenger_apache2::mod_rails"
+include_recipe "apache2::mod_ssl"
+require 'openssl'
+
 # We use ruby 1.8.x
 %w(ruby ruby-dev rubygems git
    libxml2-dev libxslt1-dev
@@ -22,27 +30,7 @@ unless File.directory? gem_path
   gem_path = "/usr/local/bin"
 end
 
-# apt recipe is broken: http://tickets.opscode.com/browse/COOK-2223
-# so using this workaround
-apt_repository "rabbitmq" do
-  uri "http://www.rabbitmq.com/debian/"
-  distribution "testing"
-  components ["main"]
-  key "http://www.rabbitmq.com/rabbitmq-signing-key-public.asc"
-  action :add
-end
-
-execute 'apt-get update'
-
-include_recipe "rabbitmq"
-
 ENV['HOME'] ||= "/root"
-
-rabbitmq_plugin "rabbitmq_stomp" do
-  action :enable
-end
-
-include_recipe "memcached"
 
 gitorious_user = node[:gitorious][:user]
 deploy_path = node[:gitorious][:deploy_path]
@@ -52,6 +40,7 @@ ENV['PATH'] = "#{gem_path}:#{ENV['PATH']}"
 
 user gitorious_user do
   system true
+  shell "/bin/bash"
   home deploy_path
 end
 
@@ -84,15 +73,24 @@ directory "#{deploy_path}/tmp/pids" do
   recursive true
 end
 
+directory "#{deploy_path}/.ssh" do
+  owner gitorious_user
+  mode 0700
+  action :create
+end
+
+template "#{deploy_path}/.bashrc" do
+  source "bashrc.erb"
+  owner gitorious_user
+  mode "0600"
+end
+
 execute "bundle --deployment --without development test" do
   cwd deploy_path
   user gitorious_user
 end
 
 # MySQL
-
-include_recipe "mysql::ruby"
-include_recipe "mysql::server"
 
 mysql_database node[:gitorious][:mysql_database] do
   connection(
@@ -115,9 +113,6 @@ mysql_database_user gitorious_user do
 end
 
 # Service definition
-
-include_recipe "passenger_apache2::mod_rails"
-include_recipe "apache2::mod_ssl"
 
 gitorious_services = %w(git-daemon git-poller git-thinking-sphinx)
 
@@ -153,8 +148,6 @@ service "git-thinking-sphinx" do
 end
 
 # Config
-
-require 'openssl'
 
 def cookie_secret
   cs = String.new

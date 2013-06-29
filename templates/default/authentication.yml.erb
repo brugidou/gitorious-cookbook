@@ -1,5 +1,6 @@
 production:
   disable_default: false
+  enable_openid: <%= node[:gitorious][:enable_openid] %>
 <% if node[:gitorious][:use_ldap_for_authorization] %>
   methods:
     - adapter: Gitorious::Authentication::LDAPAuthentication
@@ -10,7 +11,7 @@ production:
 
       # The base DN when searching for groups (for authorization)
       # If unspecified, base_dn is used
-      # group_search_dn: OU=groups,dc=gitorious,dc=org
+      # group_search_dn: <%= node[:gitorious][:ldap][:group_search_dn] %>
 
       login_attribute: <%= node[:gitorious][:ldap][:login_attribute] %>
 
@@ -32,9 +33,9 @@ production:
 
       # Specify a username/password to use for authenticated bind
       # NOTE: This is required when using LDAP for authorization
-      #bind_user:
-      #  username: boss
-      #  password: sikret
+      bind_user:
+        username: <%= node[:gitorious][:ldap][:bind_user] %>
+        password: <%= node[:gitorious][:ldap][:bind_pass] %>
 
       # When using LDAP authorization: which attribute in a user
       # record specifies groups a user is member of
