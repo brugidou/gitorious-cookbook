@@ -48,7 +48,7 @@ Attribute | Description | Default
 `mysql_password`      | Mysql user password | `1234`
 `use_ldap_for_authorization` | If this is set to false, all other ldap attributes are ignored | `true`
 `ldap:host`            | | `ldap.gitorious.org`
-`ldap:port`            | | `389`
+`ldap:port`            | | `636`
 `ldap:base_dn`         | | `DC=gitorious,DC=org`
 `ldap:group_search_dn` | Base DN when searching for groups. Need to uncomment in authentication.yml.erb if you want to use it| `ou=Groups,dc=gitorious,dc=org`
 `ldap:login_attribute` | | `CN`
