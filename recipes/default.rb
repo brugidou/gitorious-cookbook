@@ -6,9 +6,7 @@
 #
 
 # We use ruby 1.8.x
-%w(ruby ruby-dev rubygems git
-   libxml2-dev libxslt1-dev
-   libmysqlclient-dev).each do |p|
+node[:gitorious][:packages].each do |p|
   # make sure this runs *first*, so we can find the gem_path
   package p do
     action :nothing
@@ -19,20 +17,13 @@ end
 raise '"gem" not found' unless gem = `which gem`
 gem_path = `gem env gemdir`+'/bin'
 unless File.directory? gem_path
-  gem_path = "/usr/local/bin"
+  case node[:platform_family]
+  when "rhel"
+    gem_path = "/usr/bin"
+  else
+    gem_path = "/usr/local/bin"
+  end
 end
-
-# apt recipe is broken: http://tickets.opscode.com/browse/COOK-2223
-# so using this workaround
-apt_repository "rabbitmq" do
-  uri "http://www.rabbitmq.com/debian/"
-  distribution "testing"
-  components ["main"]
-  key "http://www.rabbitmq.com/rabbitmq-signing-key-public.asc"
-  action :add
-end
-
-execute 'apt-get update'
 
 include_recipe "rabbitmq"
 
@@ -132,26 +123,6 @@ gitorious_services.each do |s|
   end
 end
 
-service "git-daemon" do
-  action :enable
-  supports :restart => true, :reload => false, :status => false
-  subscribes :restart, resources("template[/etc/init.d/git-daemon]")
-end
-
-service "git-poller" do
-  action :enable
-  pattern "poller"
-  supports :restart => true, :reload => false, :status => false
-  subscribes :restart, resources("template[/etc/init.d/git-poller]")
-end
-
-service "git-thinking-sphinx" do
-  action :enable
-  pattern "searchd"
-  supports :restart => true, :reload => false, :status => false
-  subscribes :restart, resources("template[/etc/init.d/git-thinking-sphinx]")
-end
-
 # Config
 
 require 'openssl'
@@ -166,12 +137,12 @@ end
 
 node.set_unless[:gitorious][:cookie_secret] = cookie_secret
 
-%w(gitorious database broker authentication).each do |config|
+confs = %w(gitorious database broker authentication)
+confs.each do |config|
   template "#{deploy_path}/config/#{config}.yml" do
     source "#{config}.yml.erb"
     mode "0644"
     owner gitorious_user
-    gitorious_services.each {|s| notifies :restart, "service[#{s}]" }
     notifies :reload, "service[apache2]"
   end
 end
@@ -187,8 +158,6 @@ template "/etc/logrotate.d/gitorious" do
 end
 
 # Prepare DB and sphinx
-
-package "sphinxsearch"
 
 execute "correct invalid gemspec dates" do
   command "find . -name '*.gemspec' | xargs sed -i 's/ 00:00:00\.000000000Z//'"
@@ -213,7 +182,14 @@ web_app "gitorious" do
   cookbook "passenger_apache2"
 end
 
-template "/etc/apache2/sites-available/gitorious-ssl" do
+gitorious_ssl = case node[:platform_family]
+                when "debian"
+                  "/etc/apache2/sites-available/gitorious-ssl"
+                when "rhel"
+                  "/etc/httpd/sites-available/gitorious-ssl"
+                end
+
+template gitorious_ssl do
   source "gitorious-ssl.erb"
   owner "root"
   mode "0644"
@@ -221,10 +197,6 @@ template "/etc/apache2/sites-available/gitorious-ssl" do
     :gitorious_path => deploy_path
   )
   notifies :reload, "service[apache2]"
-end
-
-apache_site "default" do
-  enable false
 end
 
 apache_site "gitorious-ssl"
@@ -236,8 +208,31 @@ cron "gitorious_thinking_sphinx_reindexing" do
   command "cd #{deploy_path} && #{gem_path}/bundle exec rake thinking_sphinx:index RAILS_ENV=production 2>&1 >/dev/null"
 end
 
-gitorious_services.each do |s|
-  service s do
-    action :start
-  end
+# Work around CHEF-2345 for RHEL
+status_cmd = lambda {|pattern| "ps -ef | grep #{pattern}" }
+
+service "git-daemon" do
+  action [:enable, :start]
+  supports :reload => false, :restart => true, :status => false
+  status_command status_cmd.call "git-daemon" if platform_family? "rhel"
+  subscribes :restart, resources("template[/etc/init.d/git-daemon]")
+  confs.each { |c| subscribes :restart, "template{#{deploy_path}/config/#{c}.yml]" }
+end
+
+service "git-poller" do
+  action [:enable, :start]
+  pattern "poller"
+  supports :reload => false, :restart => true, :status => false
+  status_command status_cmd.call "poller" if platform_family? "rhel"
+  subscribes :restart, resources("template[/etc/init.d/git-poller]")
+  confs.each { |c| subscribes :restart, "template{#{deploy_path}/config/#{c}.yml]" }
+end
+
+service "git-thinking-sphinx" do
+  action [:enable, :start]
+  pattern "searchd"
+  supports :reload => false, :restart => true, :status => false
+  status_command status_cmd.call "searchd" if platform_family? "rhel"
+  subscribes :restart, resources("template[/etc/init.d/git-thinking-sphinx]")
+  confs.each { |c| subscribes :restart, "template{#{deploy_path}/config/#{c}.yml]" }
 end

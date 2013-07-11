@@ -4,6 +4,9 @@
     SSLEngine on
     SSLCertificateFile    <%= @node[:gitorious][:apache][:ssl][:cert_path] %>
     SSLCertificateKeyFile <%= @node[:gitorious][:apache][:ssl][:key_path] %>
+    <% if @node[:gitorious][:apache][:ssl][:chain_path] %>
+    SSLCertificateChainFile <%= @node[:gitorious][:apache][:ssl][:chain_path] %>
+    <% end %>
     BrowserMatch ".*MSIE.*" nokeepalive ssl-unclean-shutdown downgrade-1.0 force-response-1.0
   </VirtualHost>
 </IfModule>
