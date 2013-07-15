@@ -1,5 +1,5 @@
 default[:gitorious][:deploy_path] = "/var/www/gitorious"
-default[:gitorious][:git_path] = "/var/git/"
+default[:gitorious][:git_path] = "/var/git"
 default[:gitorious][:user] = "git"
 
 case node[:platform_family]
