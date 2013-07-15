@@ -5,6 +5,8 @@
 # Copyright 2012, Copyright 2012, Criteo
 #
 
+include_recipe "yum::epel" if platform_family? "rhel"
+
 # We use ruby 1.8.x
 node[:gitorious][:packages].each do |p|
   # make sure this runs *first*, so we can find the gem_path
@@ -49,6 +51,16 @@ end
 directory deploy_path do
   owner gitorious_user
   recursive true
+end
+
+directory "#{deploy_path}/.ssh" do
+  owner gitorious_user
+  mode "700"
+end
+
+file "#{deploy_path}/.ssh/authorized_keys" do
+  owner gitorious_user
+  mode "600"
 end
 
 %w(repositories tarballs tarballs-work).each do |d|
@@ -200,6 +212,25 @@ template gitorious_ssl do
 end
 
 apache_site "gitorious-ssl"
+
+p = case node[:platform_family]
+    when "debian"
+      "sphinxsearch"
+    when "rhel"
+      "sphinx"
+    end
+package p
+
+file "/usr/local/bin/gitorious" do
+  mode "755"
+  content <<EOF
+#!/usr/bin/env dash
+
+cd #{deploy_path}
+
+RAILS_ENV=production bundle exec script/gitorious "$@"
+EOF
+end
 
 # Start services
 
