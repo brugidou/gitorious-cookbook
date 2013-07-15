@@ -4,7 +4,7 @@ production:
   gitorious_host: <%= node[:gitorious][:host] %>
   #gitorious_clone_host: gitorious.test
 
-  gitorious_client_host: localhost
+  gitorious_client_host: <%= node[:gitorious][:host] %>
 
   repository_base_path: "<%= node[:gitorious][:git_path] %>/repositories"
   archive_cache_dir: "<%= node[:gitorious][:git_path] %>/tarballs"
@@ -21,10 +21,10 @@ production:
   # enable_repository_dir_sharding: true
   symlinked_mirror_repo_base : "<% node[:gitorious][:deploy_path] %>/repo-mirror"
 
-  # stomp_server_address: localhost
-  stomp_server_port: 5672
-  # stomp_server_login: ~
-  # stomp_server_passcode: ~
+  stomp_server_address: <%= node[:gitorious][:stomp][:host] %>
+  stomp_server_port: <%= node[:gitorious][:stomp][:port] %>
+  stomp_server_login: guest
+  stomp_server_passcode: guest
 
   #merge_request_diff_timeout: 10
 

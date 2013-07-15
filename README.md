@@ -52,6 +52,8 @@ Attribute | Description | Default
 `ldap:encryption`        | | `simple_tls`
 `apache:ssl:cert_path`   | Location of Apache SSL certificate | `/etc/ssl/certs/ssl-cert-snakeoil.pem`
 `apache:ssl:key_path`    | Location of Apache SSL key | `/etc/ssl/private/ssl-cert-snakeoil.key`
+`stomp:host`             | Host to use for stomp | `localhost`
+`stomp:port`             | Port to use for stomp | `61613`
 
 Usage
 =====
