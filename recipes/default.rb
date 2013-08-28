@@ -221,15 +221,8 @@ p = case node[:platform_family]
     end
 package p
 
-file "/usr/local/bin/gitorious" do
-  mode "755"
-  content <<EOF
-#!/usr/bin/env dash
-
-cd #{deploy_path}
-
-RAILS_ENV=production bundle exec script/gitorious "$@"
-EOF
+link "/usr/local/bin/gitorious" do
+  to "#{deploy_path}/script/gitorious"
 end
 
 # Start services
