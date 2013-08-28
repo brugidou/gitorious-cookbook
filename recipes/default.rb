@@ -70,6 +70,7 @@ end
   end
 end
 
+package "ImageMagick"
 gem_package "bundler"
 
 # Install gitorious mainline
@@ -79,7 +80,7 @@ git deploy_path do
   reference node[:gitorious][:git][:ref]
   user gitorious_user
   enable_submodules true
-  action :sync
+  action :checkout
 end
 
 directory "#{deploy_path}/tmp/pids" do
