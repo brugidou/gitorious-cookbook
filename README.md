@@ -54,6 +54,7 @@ Attribute | Description | Default
 `apache:ssl:key_path`    | Location of Apache SSL key | `/etc/ssl/private/ssl-cert-snakeoil.key`
 `stomp:host`             | Host to use for stomp | `localhost`
 `stomp:port`             | Port to use for stomp | `61613`
+`git_proxy`              | Use git-proxy with native git-daemon | `nil`
 
 Usage
 =====

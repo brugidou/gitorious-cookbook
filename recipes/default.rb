@@ -123,7 +123,7 @@ end
 include_recipe "passenger_apache2::mod_rails"
 include_recipe "apache2::mod_ssl"
 
-gitorious_services = %w(git-daemon git-poller git-thinking-sphinx)
+gitorious_services = %w(git-poller git-thinking-sphinx git-daemon git-proxy)
 
 gitorious_services.each do |s|
   template "/etc/init.d/#{s}" do
@@ -131,7 +131,8 @@ gitorious_services.each do |s|
     mode   "0755"
     variables(
       :gitorious_home => deploy_path,
-      :gem_path => gem_path
+      :gem_path => gem_path,
+      :repository_path => "#{git_path}/repositories"
     )
   end
 end
@@ -236,14 +237,6 @@ end
 # Work around CHEF-2345 for RHEL
 status_cmd = lambda {|pattern| "ps -ef | grep #{pattern}" }
 
-service "git-daemon" do
-  action [:enable, :start]
-  supports :reload => false, :restart => true, :status => false
-  status_command status_cmd.call "git-daemon" if platform_family? "rhel"
-  subscribes :restart, resources("template[/etc/init.d/git-daemon]")
-  confs.each { |c| subscribes :restart, "template{#{deploy_path}/config/#{c}.yml]" }
-end
-
 service "git-poller" do
   action [:enable, :start]
   pattern "poller"
@@ -260,4 +253,31 @@ service "git-thinking-sphinx" do
   status_command status_cmd.call "searchd" if platform_family? "rhel"
   subscribes :restart, resources("template[/etc/init.d/git-thinking-sphinx]")
   confs.each { |c| subscribes :restart, "template{#{deploy_path}/config/#{c}.yml]" }
+end
+
+unless node[:gitorious][:git_proxy]
+  service "git-proxy" do
+    action [:disable, :stop]
+    supports :reload => false, :restart => true, :status => false
+    status_command status_cmd.call "proxymachine" if platform_family? "rhel"
+  end
+end
+
+service "git-daemon" do
+  action [:enable, :start]
+  supports :reload => false, :restart => true, :status => false
+  status_command status_cmd.call "git-daemon" if platform_family? "rhel"
+  subscribes :restart, resources("template[/etc/init.d/git-daemon]")
+  confs.each { |c| subscribes :restart, "template{#{deploy_path}/config/#{c}.yml]" }
+end
+
+if node[:gitorious][:git_proxy]
+  package "git-daemon"
+  service "git-proxy" do
+    action [:enable, :start]
+    supports :reload => false, :restart => true, :status => false
+    status_command status_cmd.call "proxymachine" if platform_family? "rhel"
+    subscribes :restart, resources("template[/etc/init.d/git-proxy]")
+    confs.each { |c| subscribes :restart, "template{#{deploy_path}/config/#{c}.yml]" }
+  end
 end

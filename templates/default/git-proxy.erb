@@ -1,26 +1,23 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          git-daemon
+# Provides:          git-proxy
 # Required-Start:    mysql
 # Required-Stop:
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: GIT-Daemon server daemon
-# Description:       Starts the GIT-Daemon needed by Gitorious
+# Short-Description: GIT-proxy server daemon
+# Description:       Starts the GIT-proxy needed by Gitorious
 ### END INIT INFO
 
 # Author: Fabio Akita <fabioakita@gmail.com>
 
 GITORIOUS_HOME="<%= @gitorious_home %>"
 RETVAL=0
-PROG="git-daemon"
-PID_FILE=$GITORIOUS_HOME/log/git-daemon.pid
-<% if node[:gitorious][:git_proxy] %>
-GIT_DAEMON="git daemon --listen=0.0.0.0 --port=9400 --syslog --export-all --pid-file=$PID_FILE --detach --reuseaddr --base-path=<%= @repository_path %> --verbose <%= @repository_path %>"
-<% else %>
-GIT_DAEMON="<%= @gem_path %>/bundle exec $GITORIOUS_HOME/script/git-daemon --daemonize"
-<% end %>
-LOCK_FILE=/var/lock/git-daemon
+PROG="git-proxy"
+PID_FILE=$GITORIOUS_HOME/log/git-proxy.pid
+GIT_PROXY="<%= @gem_path %>/bundle exec $GITORIOUS_HOME/script/git-proxy --detach --pid=$PID_FILE"
+LOCK_FILE=/var/lock/git-proxy
+export RAILS_ENV=production
 
 do_check_pid() {
   if [ -f $PID_FILE ]; then
@@ -39,7 +36,7 @@ start()
   do_check_pid
   if [ $RUNNING != 2 ] ; then
     echo -n "Starting $PROG"
-    /bin/su - <%= @node[:gitorious][:user] %> -c "$GIT_DAEMON" 2>/dev/null
+    /bin/su - <%= @node[:gitorious][:user] %> -c "RAILS_ENV=$RAILS_ENV $GIT_PROXY" 2>/dev/null
     sleep 1
     if [ -f $PID_FILE ] ; then
       echo "."
