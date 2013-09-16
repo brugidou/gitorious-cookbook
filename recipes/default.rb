@@ -70,7 +70,7 @@ end
   end
 end
 
-package "ImageMagick"
+include_recipe "imagemagick"
 gem_package "bundler"
 
 # Install gitorious mainline
