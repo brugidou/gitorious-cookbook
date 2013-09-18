@@ -53,6 +53,14 @@ directory deploy_path do
   recursive true
 end
 
+git deploy_path do
+  repository node[:gitorious][:git][:url]
+  reference node[:gitorious][:git][:ref]
+  user gitorious_user
+  enable_submodules true
+  action :checkout
+end
+
 directory "#{deploy_path}/.ssh" do
   owner gitorious_user
   mode "700"
@@ -70,18 +78,10 @@ end
   end
 end
 
-package "ImageMagick"
+include_recipe "imagemagick"
 gem_package "bundler"
 
 # Install gitorious mainline
-
-git deploy_path do
-  repository node[:gitorious][:git][:url]
-  reference node[:gitorious][:git][:ref]
-  user gitorious_user
-  enable_submodules true
-  action :checkout
-end
 
 directory "#{deploy_path}/tmp/pids" do
   owner gitorious_user

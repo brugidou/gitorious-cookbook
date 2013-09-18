@@ -9,6 +9,7 @@ depends          "passenger_apache2"
 depends          "mysql"
 depends          "database"
 depends          "memcached"
+depends          "imagemagick"
 
 %w(centos redhat ubuntu debian).each do |os|
   supports os

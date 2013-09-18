@@ -25,6 +25,7 @@ Dependencies
 * `mysql`
 * `database` (for the `mysql` providers)
 * `memcached`
+* `imagemagick`
 
 Attributes
 ==========
