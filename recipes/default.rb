@@ -5,7 +5,7 @@
 # Copyright 2012, Copyright 2012, Criteo
 #
 
-include_recipe "yum::epel" if platform_family? "rhel"
+include_recipe "yum-epel" if platform_family? "rhel"
 
 # We use ruby 1.8.x
 node[:gitorious][:packages].each do |p|
