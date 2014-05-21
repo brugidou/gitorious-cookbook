@@ -1,3 +1,4 @@
+name             "gitorious"
 maintainer       "Copyright 2012, Criteo"
 maintainer_email "m.brugidou@criteo.com"
 license          "Apache 2.0"
