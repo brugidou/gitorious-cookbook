@@ -1,3 +1,10 @@
+CONTRIBUTION NOTICE
+===================
+
+*This cookbook is currently not used/maintained by the current owner
+(@brugidou). It is open for grabs. Feel free to fork and let me know that you
+want to take ownership using the Chef Supermarket adoption feature.*
+
 Description
 ===========
 
